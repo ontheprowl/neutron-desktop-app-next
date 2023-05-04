@@ -2,26 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
+@layer base {
+  @font-face {
+    font-family: "Gilroy-Regular";
+    src: url("/Gilroy-Regular.ttf");
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+  @font-face {
+    font-family: "Gilroy-Bold";
+    src: url("/Gilroy-Bold.ttf");
+  }
+
+  @font-face {
+    font-family: "Gilroy-Black";
+    src: url("/GILROY-BLACK.TTF");
+  }
+
+  @font-face {
+    font-family: "Gilroy-Medium";
+    src: url("/GILROY-MEDIUM.TTF");
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+* {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/*
+  Customization for Safari bug that prevents input selection due to webkit-use-select : none setting 
+*/
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+sup {
+  top: -0.3em;
+  vertical-align: super;
+}
+sub {
+  bottom: -0.25em;
+  vertical-align: sub;
 }
