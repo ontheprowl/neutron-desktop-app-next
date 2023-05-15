@@ -57,7 +57,7 @@ export default function Login() {
 
     useEffect(() => {
         if (user) {
-            router.push('home')
+            router.push('companies')
         }
 
     }, [user])

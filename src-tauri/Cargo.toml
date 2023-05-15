@@ -1,8 +1,9 @@
 [package]
 name = "app"
+
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Neutron Desktop App"
+authors = ["grajeev"]
 license = ""
 repository = ""
 default-run = "app"
@@ -12,15 +13,22 @@ rust-version = "1.59"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "1.2.1", features = [] }
+tauri-build = { version = "1.3.0", features = [] }
 
 [dependencies]
 serde_json = "1.0"
-reqwest = { version = "0.11", features = ["blocking", "json"] }
-xmltojson = "0"
-tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.2.4", features = ["http-all"] }
+tauri = { version = "1.3.0", features = ["http-all"] }
+gcloud-sdk = { version = "0.20", features = ["google-firestore-v1"] }
+tonic = { version = "0.9", features = ["tls"] }
+prost = "0.11"
+prost-types = "0.11"
+firestore = "0.32"
+xmltojson = "0.1.3"
+reqwest = { version = "0.11", features = ["json", "blocking"] }
+tauri-plugin-store = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "dev" }
+
+
 
 [features]
 # by default Tauri runs in production mode
@@ -28,4 +36,4 @@ tauri = { version = "1.2.4", features = ["http-all"] }
 default = ["custom-protocol"]
 # this feature is used for production builds where `devPath` points to the filesystem
 # DO NOT remove this
-custom-protocol = ["tauri/custom-protocol"]
+custom-protocol = [ "tauri/custom-protocol" ]

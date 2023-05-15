@@ -1,56 +1,55 @@
-import { useFetcher, useTransition } from "@remix-run/react";
 import NucleiTextInput from "../inputs/fields/NucleiTextInput";
-import { useEffect } from "react";
-import { emitToast } from "~/utils/toasts/NeutronToastContainer";
+import { useContext, useEffect, useState } from "react";
 import { injectStyle } from "react-toastify/dist/inject-style";
 import { useFormContext, useWatch } from "react-hook-form";
 import DefaultSpinner from "../layout/DefaultSpinner";
-import { OnboardingDataStore } from "~/stores/OnboardingDataStore";
+import { emitToast } from "../toasts/NeutronToastContainer";
+import { useRouter } from "next/router";
+import { invoke } from "@tauri-apps/api";
+import { doc, updateDoc } from "firebase/firestore";
+import { fbFirestore } from "@/lib/firebase/firebase-config";
+import { SessionContext } from "@/lib/context/SessionContext";
 
 
 
 export default function TallyIntegrationComponent() {
 
 
-    const fetcher = useFetcher();
-
     const { control, setValue } = useFormContext();
+
+    const { metadata } = useContext(SessionContext);
+
+    console.log(metadata)
 
     const tallyPort = useWatch({ control, name: 'tally_port', defaultValue: '9000' });
     const tallyHostname = useWatch({ control, name: 'tally_host', defaultValue: 'localhost' });
 
+    const router = useRouter()
 
-    useEffect(() => {
-        console.log("DATA:")
-        console.dir(fetcher.data)
-        if (fetcher.data && fetcher.state == "loading") {
-            if (fetcher.data['status'] == '1') {
-                setValue('creds', {
-                    tally_port: tallyPort,
-                    tally_host: tallyHostname
-                });
-                setValue('integration', 'tally');
-                OnboardingDataStore.update((s) => {
-                    s.credsReceived = true
-                })
-                emitToast("Tally Connection successful", null, "success")
-            } else {
-                emitToast("Tally Connection unsuccessful", "Please check the values entered for the Hostname and Port", "error")
-            }
-
-        }
-    }, [fetcher])
+    const [loading, setLoading] = useState(false)
 
 
     return (<div>
-        <NucleiTextInput name="tally_port" label="Port" defaultValue={tallyPort} placeholder='By default, Tally uses port 9000 to talk to other applications' type="text"></NucleiTextInput>
-        <NucleiTextInput name="tally_host" label="Hostname" defaultValue={tallyHostname} placeholder='Please enter your public IP Address here' type="text"></NucleiTextInput>
-        <button type="button" className="bg-primary-base text-white min-h-max p-4 min-w-[200px] rounded-xl" onClick={() => {
+        <NucleiTextInput name="tally_port" label="Tally Port" defaultValue={tallyPort} placeholder='By default, Tally uses port 9000 to talk to other applications' type="text"></NucleiTextInput>
+        <NucleiTextInput name="tally_host" label="Tally Host" defaultValue={tallyHostname} placeholder='Please enter your public IP Address here' type="text"></NucleiTextInput>
+        <button type="submit" className="bg-primary-base hover:bg-primary-dark active:opacity-80 text-white min-h-max p-4 min-w-[200px] rounded-xl" onClick={() => {
+            setLoading(true)
+            const form = {}
+            form['tally_port'] = tallyPort
+            form['tally_host'] = tallyHostname
+            console.log(form)
+            invoke('ping', { host: tallyHostname, port: tallyPort }).then((data: { [x: string]: any }) => {
+                setLoading(false);
+                if (data?.status == 0) {
+                    updateDoc(doc(fbFirestore, `businesses/${metadata?.businessID}`), { integration: 'tally', creds: { hostname: tallyHostname, port: tallyPort } }).then(() => {
+                        emitToast("Connection Successful", "Your Tally connection details have been saved", "success");
+                    })
+                } else {
+                    emitToast("Connection Unsuccessful", "Please check the values entered for the Hostname and Port", "error")
 
-            const form = new FormData();
-            form.append('tally_port', tallyPort)
-            form.append('tally_host', tallyHostname)
-            fetcher.submit(form, { method: "post", action: '/integrations/tally/test?upload=false' })
-        }}>{fetcher.state != "idle" ? <DefaultSpinner></DefaultSpinner> : 'Test Connection'}</button>
+                }
+            })
+
+        }}>{loading ? <DefaultSpinner></DefaultSpinner> : 'Test & Save Connection'}</button>
     </div>)
 }

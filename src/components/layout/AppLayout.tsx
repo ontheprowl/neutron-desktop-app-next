@@ -23,9 +23,11 @@ import { getVersion } from '@tauri-apps/api/app';
 import { invoke } from "@tauri-apps/api";
 import { TallyCompanyDetails, TallyLicenseInfo } from "@/lib/models/tally";
 import { SessionContext } from "@/lib/context/SessionContext";
+import { Store } from "tauri-plugin-store-api";
 
 
-const queryClient = new QueryClient();
+const store = new Store(".settings.dat");
+
 
 export default function AppLayout({ children }: { children: ReactNode }) {
 
@@ -35,6 +37,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     const { pathname, push } = useRouter();
     const [licenseInfo, setLicenseInfo] = useState<TallyLicenseInfo>();
 
+
+
+    
 
     const pushWithoutScroll = (url: string) => {
         push(url, undefined, { scroll: false })
@@ -46,18 +51,13 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         getVersion().then(setVersion)
     }, [])
 
-    // * Check Tally Connection State and Obtain License Info
-    useEffect(() => {
-        invoke('ping').then((data: { [x: string]: any }) => {
-            if (data?.status == 0) {
-                setLicenseInfo(data?.data?.ENVELOPE?.LICENSEINFO);
-            } else {
-                setLicenseInfo(undefined);
+    useEffect(()=>{
+        store.set("license-info", licenseInfo);  
 
-            }
-        })
-    }, [pathname])
+    },[licenseInfo])
 
+
+    store.entries().then(console.log)
 
     const [signOut] = useSignOut(fbAuth);
 
@@ -74,13 +74,23 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     }, [user])
 
 
+     // * Check Tally Connection State and Obtain License Info
+     useEffect(() => {
+        invoke('ping', { host: businessData?.creds?.hostname ? businessData?.creds?.hostname : 'localhost', port: businessData?.creds?.port ? businessData?.creds?.port : '9000' }).then((data: { [x: string]: any }) => {
+            if (data?.status == 0) {
+                setLicenseInfo(data?.data?.ENVELOPE?.LICENSEINFO);
+            } else {
+                setLicenseInfo(undefined);
+
+            }
+        })
+    }, [pathname])
 
 
     const currView: Array<string> = []
 
 
     return (
-        <QueryClientProvider client={queryClient}>
             <div className={`flex font-gilroy-bold h-auto w-full flex-col bg-white sm:border-0 border-transparent`}>
 
                 <div id="top_nav" className="h-16 flex flex-row space-x-10 items-center justify-between p-3 py-12">
@@ -119,7 +129,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                                         <button
                                             onClick={() => {
 
-                                                pushWithoutScroll('companies')
+                                                pushWithoutScroll('/companies')
 
 
 
@@ -140,7 +150,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                                             onClick={() => {
 
                                                 // TODO: Add logic on disputes parent layout page to redirect to /disputeID of the first active dispute
-                                                pushWithoutScroll('add_company')
+                                                pushWithoutScroll('/add_company')
 
 
                                             }}
@@ -159,7 +169,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
                                                 // TODO: Add logic on disputes parent layout page to redirect to /disputeID of the first active dispute
 
-                                                pushWithoutScroll('vouchers')
+                                                pushWithoutScroll('/vouchers')
 
 
                                             }}
@@ -192,7 +202,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
                                     <li className=" transition-all rounded-lg">
                                         <button onClick={() => {
-                                            pushWithoutScroll('settings')
+                                            pushWithoutScroll('/settings/tally')
 
                                         }}
                                             className={`rounded-lg transition-all flex flex-row align-middle p-2 w-full border-2 border-transparent active:border-primary-base hover:border-primary-base  sm:space-x-4 ${pathname.includes('settings') ? 'bg-primary-base text-white' : `text-black`}
@@ -244,7 +254,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                     logout()
                 }} heading={<h1> You are about to log out of the Neutron app </h1>} body={<p> Are you sure you want to proceed?</p>} toggleModalFunction={setLogoutConfirmationModal}></NeutronModal>}
             </div >
-        </QueryClientProvider>
 
     );
 
