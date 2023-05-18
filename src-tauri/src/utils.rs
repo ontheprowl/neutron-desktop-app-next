@@ -9,7 +9,7 @@ use crate::{
 };
 
 pub fn get_from_map_safe(map: &HashMap<String, String>, key: &str) -> String {
-    return map.get(key).unwrap_or(&("".to_string())).to_string();
+    return map.get(key).unwrap_or(&("".to_string())).replace("\"","").to_string();
 }
 
 pub fn get_tally_uri_from_state(state : State<Params>) -> String {

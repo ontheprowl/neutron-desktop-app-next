@@ -2,8 +2,6 @@
 import { motion, useAnimation } from 'framer-motion';
 import React, { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { ContractDataStore } from '~/stores/ContractStores';
-import { primaryGradientDark } from '~/utils/neutron-theme-extensions';
 
 const spring = {
     type: "spring",

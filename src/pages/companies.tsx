@@ -1,11 +1,9 @@
 import AppLayout from "@/components/layout/AppLayout";
 import DefaultSpinner from "@/components/layout/DefaultSpinner";
+import { SessionContext } from "@/lib/context/SessionContext";
 import { TallyCompanyDetails } from "@/lib/models/tally";
-import { http, invoke } from "@tauri-apps/api"
-import { L } from "@tauri-apps/api/event-2a9960e7";
 
-import { ReactElement, JSXElementConstructor, ReactFragment, ReactPortal, useEffect, useState } from "react";
-import { useQuery } from "react-query";
+import { ReactElement, JSXElementConstructor, ReactFragment, ReactPortal, useEffect, useState, useContext } from "react";
 
 
 
@@ -13,22 +11,15 @@ import { useQuery } from "react-query";
 export default function CompaniesPage() {
 
 
+    const {metadata, businessData} = useContext(SessionContext)  ;
+
     const [companies, setCompanies] = useState<Array<TallyCompanyDetails>>([]);
     const [refresh, setRefresh] = useState(false);
     const [selected, setSelected] = useState(0)
     useEffect(() => {
-        invoke('get_tally_companies').then((data: { [x: string]: any }) => {
-            if (data?.status != "-1") {
-                if (Array.isArray(data?.ENVELOPE?.COMPANIES)) {
-                    setCompanies(data?.ENVELOPE?.COMPANIES)
-                } else {
-                    setCompanies([data?.ENVELOPE?.COMPANIES])
-
-                }
-            }
-        }
-        ).catch(console.error)
-
+        if(businessData?.creds?.companies){
+            setCompanies(businessData?.creds?.companies);
+        } 
     }, [refresh])
     console.log(companies)
 
@@ -42,7 +33,7 @@ export default function CompaniesPage() {
                     setRefresh(!refresh);
                 }} className="text-white bg-primary-base transition-all hover:bg-primary-dark rounded-xl p-3 ">Refresh</button>
             </div>
-            <ul className={`flex flex-col h-full w-1/3 ${companies.length > 0 ? 'justify-start items-start' : 'justify-center items-center'} space-y-6 `}
+            <ul className={`flex flex-col h-full w-1/3 ${companies.length > 0 ? 'justify-start items-start' : 'justify-center items-center w-full'}  space-y-6 `}
             >
                 {companies.length > 0 ? companies.map((company, index) => {
                     return <li onClick={(e) => {
@@ -72,7 +63,7 @@ export default function CompaniesPage() {
 
                         </div>
                     </li>
-                }) : "No Companies Found"}
+                }) : "No previously synced companies"}
             </ul>
         </div>
     )

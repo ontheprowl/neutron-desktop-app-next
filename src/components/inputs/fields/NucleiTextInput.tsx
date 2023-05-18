@@ -1,3 +1,4 @@
+
 import { ErrorMessage } from "@hookform/error-message";
 import { useEffect, useState } from "react";
 import type { Path, RegisterOptions } from "react-hook-form";
@@ -20,7 +21,7 @@ export default function NucleiTextInput({ name, options, label, placeholder, opt
 
     const [hasError, setHasError] = useState(false)
 
-    const hasRealError = name in errors && errors[name].type != 'required';
+    const hasRealError = name in errors && errors[name]?.type != 'required';
 
 
     useEffect(() => {
@@ -39,7 +40,7 @@ export default function NucleiTextInput({ name, options, label, placeholder, opt
                 {optional && <span className="text-secondary-text font-gilroy-medium">(Optional)</span>}
             </div>
             <input disabled={disabled} {...register(name, options)} type={type ? type : "text"} placeholder={placeholder} defaultValue={inputWatch}
-                className={`transition-all outline-none focus:ring-0 ${disabled ? 'bg-neutral-light text-secondary-text' : 'bg-white text-black hover:border-primary-dark active:border-primary-dark focus:border-primary-dark'}  pt-3 pb-3 pl-4 pr-4 border-2 ${hasError  ? 'border-error-dark' : 'border-neutral-light'}  outline-none  text-sm rounded-xl placeholder-neutral-base block w-full h-12 font-gilroy-medium`} />
+                className={`transition-all outline-none focus:ring-0 ${disabled ? 'bg-neutral-light text-secondary-text' : 'bg-white text-black hover:border-primary-dark active:border-primary-dark focus:border-primary-dark'}  pt-3 pb-3 pl-4 pr-4 border-2 ${hasError ? 'border-error-dark' : 'border-neutral-light'}  outline-none  text-sm rounded-xl placeholder-neutral-base block w-full h-12 font-gilroy-medium`} />
             <div className="w-full h-5 mt-1 text-left">
                 <ErrorMessage errors={errors} name={name} render={(data) => {
                     return (<span className="text-error-base pl-4 z-10 font-gilroy-bold text-left">{data.message}</span>)

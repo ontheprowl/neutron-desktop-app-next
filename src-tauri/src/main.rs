@@ -16,6 +16,7 @@ use tauri::Manager;
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent,None)) /* arbitrary number of args to pass to your app */
         .setup(|app| {
             println!("[FIRESTORE INIT] Retrieving service account credentials");
             let resource_path: PathBuf = app

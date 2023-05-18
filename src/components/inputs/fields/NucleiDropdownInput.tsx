@@ -1,3 +1,6 @@
+
+/* slint-disable */
+
 import { ErrorMessage } from "@hookform/error-message";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
@@ -21,7 +24,7 @@ export default function NucleiDropdownInput({ name, options, label, placeholder,
 
     const [hasError, setHasError] = useState(false)
 
-    const hasRealError = name in errors && errors[name].type != 'required';
+    const hasRealError = name in errors && errors[name]?.type != 'required';
 
 
     useEffect(() => {

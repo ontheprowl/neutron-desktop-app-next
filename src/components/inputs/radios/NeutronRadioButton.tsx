@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { useFormContext } from 'react-hook-form';
 import GenericIcon from '~/assets/images/institution_icon.svg'
-import { StateContext } from '~/utils/contexts/StateContext';
+import { StateContext } from '@/utils/contexts/StateContext';
 
 
 export default function NeutronRadioButton({ name, value, heading, description, icon, noIcon, no }: { name: string, value: string, heading: string, description?: string, icon?: string, no: number, noIcon?: boolean }) {

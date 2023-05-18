@@ -1,6 +1,5 @@
-import { useNavigation } from "@remix-run/react";
 import { useState } from "react";
-import DefaultSpinner from "~/components/layout/DefaultSpinner";
+import DefaultSpinner from "@/components/layout/DefaultSpinner";
 
 
 
@@ -11,7 +10,6 @@ export default function NucleiPrimaryButton({ text, onClick }: { text: string, o
 
     const [clicked, setClicked] = useState(false);
 
-    let navigation = useNavigation();
 
 
     return (
@@ -20,7 +18,7 @@ export default function NucleiPrimaryButton({ text, onClick }: { text: string, o
             onClick(e);
             setClicked(false);
         }} className="bg-primary-base min-w-max text-white hover:bg-primary-dark transition-all rounded-lg p-3">
-            {navigation.state == "idle" ? text : <DefaultSpinner />}
+            {clicked ? text : <DefaultSpinner />}
         </button>
     )
 }

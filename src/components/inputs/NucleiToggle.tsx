@@ -1,9 +1,3 @@
-import { useLocation } from "@remix-run/react";
-import { motion } from "framer-motion";
-import { SetStateAction, useEffect, useState } from "react";
-
-
-
 
 
 export default function NucleiToggle({ onToggle, control }: {  control?: boolean, onToggle: React.MouseEventHandler<HTMLDivElement> }) {

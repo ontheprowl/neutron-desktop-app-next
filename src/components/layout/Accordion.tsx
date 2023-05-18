@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 
 export default function Accordion({ expanded, setExpanded, content, label, className }: { expanded: boolean, setExpanded: React.Dispatch<React.SetStateAction<boolean>>, content?: JSX.Element, label?: JSX.Element, className?: string }) {
     const isOpen = expanded;

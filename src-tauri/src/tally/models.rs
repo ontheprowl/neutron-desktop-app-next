@@ -1,9 +1,9 @@
 use std::{any::Any, collections::HashMap, fmt};
 
-use prost_types::Value;
 use serde::{Deserialize, Serialize};
+use std::ops::Index;
 
-use crate::utils;
+use crate::{models, utils};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct NeutronInvoice {
@@ -30,6 +30,70 @@ pub struct Receipt {
     pub(crate) customer_name: String,
     pub(crate) valid: String,
     pub(crate) entries: ReceiptEntries,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+
+pub struct TallyRef {
+    pub(crate) ref_name: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct ReceiptDetails {
+    pub(crate) receipt_id: String,
+    pub(crate) customer_name: String,
+    pub(crate) cr_dr: bool,
+    pub(crate) bill_type: String,
+    pub(crate) bill_ref: String,
+    pub(crate) bill_cr_period: String,
+    pub(crate) bill_amount: f32,
+}
+
+impl From<HashMap<String, String>> for ReceiptDetails {
+    fn from(detailed_receipt_data: HashMap<String, String>) -> Self {
+        let cr_or_dr = detailed_receipt_data.get("BILLCRDR").unwrap().to_string();
+
+        let bill_amount_string: String =
+            utils::get_from_map_safe(&detailed_receipt_data, "BILLAMOUNT");
+
+        let bill_amount: f32 = |val: &str| -> f32 {
+            println!("{}", &val);
+            let trimmed_part: String = val.trim().replace(',', "");
+            return trimmed_part.parse::<f32>().unwrap();
+        }(&bill_amount_string);
+
+        let cr_or_dr_bool: bool = cr_or_dr
+            .split_terminator("^")
+            .into_iter()
+            .map(|val| -> bool {
+                match val {
+                    "Yes" => {
+                        return true;
+                    }
+
+                    "No" => {
+                        return false;
+                    }
+
+                    &_ => false,
+                }
+            })
+            .collect::<Vec<bool>>()[0];
+
+        return ReceiptDetails {
+            receipt_id: detailed_receipt_data
+                .get("VOUCHERGUID")
+                .unwrap()
+                .to_string(),
+
+            customer_name: utils::get_from_map_safe(&detailed_receipt_data, "LEDGERNAME"),
+            cr_dr: cr_or_dr_bool,
+            bill_type: utils::get_from_map_safe(&detailed_receipt_data, "BILLTYPE"),
+            bill_ref: utils::get_from_map_safe(&detailed_receipt_data, "BILLNAME"),
+            bill_cr_period: utils::get_from_map_safe(&detailed_receipt_data, "BILLCREDITPERIOD"),
+            bill_amount: bill_amount,
+        };
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -61,7 +125,7 @@ pub struct Ledger {
     pub(crate) to: String,              // Tally - TODATE
     pub(crate) gst: String,             // Tally - GSTIN
     pub(crate) gst_type: String,        // Tally - GSTREGISTRATIONTYPE
-    pub(crate) id: String,              // Tally - GUID
+    pub(crate) contact_id: String,      // Tally - GUID
     pub(crate) hsn: String,             // Tally - HSNCODE
     pub(crate) hsn_desc: String,        // Tally - HSNDESCRIPTION
     pub(crate) itn: String,             // Tally - INCOMETAXNUMBER
@@ -70,32 +134,99 @@ pub struct Ledger {
     pub(crate) is_tds_applicable: bool, // Tally - ISTDSAPPLICABLE
     pub(crate) ledger_details: LedgerPendingDetails,
     pub(crate) name: String, // Tally - NAME
+    pub(crate) outstanding_receivable_amount: f32,
+    pub(crate) outstanding: f32,
+    pub(crate) revenue: f32,
+    pub(crate) dso: i32,
 
-                             // "ISTDSAPPLICABLE": "No",
 
-                             // "LEDGER_ROTC": "0",
-                             // "OPENINGBALANCE": "0.00",
-                             // "PARENT": "Employee Benefit Expenses",
-                             // "PINCODE": null,
-                             // "SALESTAXNUMBER": null,
-                             // "TDSDEDUCTEETYPE": null,
-                             // "VATTIN": null
+    pub(crate) first_name: String,
+    pub(crate) last_name: String,
+    pub(crate) vendor_name: String,
+    pub(crate) invoices: Vec<Invoice>, // "ISTDSAPPLICABLE": "No",
+
+                                       // "LEDGER_ROTC": "0",
+                                       // "OPENINGBALANCE": "0.00",
+                                       // "PARENT": "Employee Benefit Expenses",
+                                       // "PINCODE": null,
+                                       // "SALESTAXNUMBER": null,
+                                       // "TDSDEDUCTEETYPE": null,
+                                       // "VATTIN": null
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+impl Index<String> for Ledger {
+    type Output = String;
+
+    fn index(&self, index: String) -> &Self::Output {
+        let index_slice = index.as_str();
+        match index_slice {
+            "contact_id" => &self.contact_id,
+            "vendor_name" => &self.vendor_name,
+            &_ => &self.contact_id,
+        }
+    }
+    // type Output  = str;
+
+    // fn index(&self, index: &str) -> &Self::Output {
+    //     match index {
+    //         &"invoice_id" => &self.invoice_id
+    //     }
+    // }
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Invoice {
     pub(crate) alter_id: String,       // Tally - ALTERID
     pub(crate) invoice_id: String,     // Tally - VOUCHERGUID
     pub(crate) invoice_number: String, // Tally - VOUCHERNUMBER
     pub(crate) buyer: InvoiceBuyerDetails,
+    pub(crate) total: f32,
+    pub(crate) balance: f32,
+    pub(crate) status: String, // For consistency with Zoho schema
     pub(crate) consignee: InvoiceConsigneeDetails,
     pub(crate) customer_name: String, // Tally - PARTYNAME
+    pub(crate) customer_id: String, // Tally - PARTYNAME
     pub(crate) date: String,          // Tally - DATE
     pub(crate) payment_terms: String, // Tally - CREDITPERIOD
     pub(crate) cancelled: bool,       // Tally - VOUCHER_CANCELLED
     pub(crate) ref_id: String,        // Tally - REF
     pub(crate) notes: String,         // Tally - NARRATION,
     pub(crate) entries: Vec<InvoiceLedgerEntry>,
+}
+
+impl fmt::Debug for Invoice {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Invoice")
+            .field("date", &self.date)
+            .field("id", &self.invoice_id)
+            .field("customer", &self.customer_name)
+            .field("total", &self.total)
+            .field("balance", &self.balance)
+            .field("status", &self.status)
+
+
+            .finish()
+    }
+}
+
+impl Index<String> for Invoice {
+    type Output = String;
+
+    fn index(&self, index: String) -> &Self::Output {
+        let index_slice = index.as_str();
+        match index_slice {
+            "invoice_id" => &self.invoice_id,
+            "customer_name" => &self.customer_name,
+            &_ => &self.invoice_id,
+        }
+    }
+    // type Output  = str;
+
+    // fn index(&self, index: &str) -> &Self::Output {
+    //     match index {
+    //         &"invoice_id" => &self.invoice_id
+    //     }
+    // }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -171,7 +302,14 @@ impl From<HashMap<String, String>> for Invoice {
                     amount: ledger_amount_parts.get(imc).unwrap().to_owned(),
                     positive: ledger_positive_parts.get(imc).unwrap().to_owned(),
                 };
-            }).collect::<Vec<InvoiceLedgerEntry>>();
+            })
+            .collect::<Vec<InvoiceLedgerEntry>>();
+
+        let customer_ledger_entry = entries
+            .iter()
+            .find(|entry| entry.name == utils::get_from_map_safe(&invoice_data, "PARTYNAME"));
+
+        let total = customer_ledger_entry.unwrap().amount;
 
         let voucher_cancelled: String =
             utils::get_from_map_safe(&invoice_data, "VOUCHER_CANCELLED");
@@ -211,13 +349,17 @@ impl From<HashMap<String, String>> for Invoice {
                 state: utils::get_from_map_safe(&invoice_data, "CONSIGNEESTATE"),
                 name: utils::get_from_map_safe(&invoice_data, "CONSIGNEENAME"),
             },
-            customer_name: utils::get_from_map_safe(&invoice_data, "CONSIGNEENAME"),
+            customer_name: utils::get_from_map_safe(&invoice_data, "PARTYNAME"),
             date: utils::get_from_map_safe(&invoice_data, "DATE"),
             payment_terms: utils::get_from_map_safe(&invoice_data, "CREDITPERIOD"),
             cancelled: voucher_cancelled_bool.to_owned(),
             ref_id: utils::get_from_map_safe(&invoice_data, "REFERENCE"),
             notes: utils::get_from_map_safe(&invoice_data, "NARRATION"),
-            entries: entries,
+            entries,
+            total,
+            balance: total,
+            status: "unpaid".to_string(),
+            ..Invoice::default()
         };
     }
 }
@@ -233,6 +375,10 @@ pub struct LedgerPendingDetails {
 
 impl From<HashMap<String, String>> for Ledger {
     fn from(ledger_data: HashMap<String, String>) -> Self {
+        let ledger_name: String = utils::get_from_map_safe(&ledger_data, "NAME");
+        let name_parts = ledger_name
+            .split(char::is_whitespace)
+            .collect::<Vec<&str>>();
         let is_cb_debit: String = utils::get_from_map_safe(&ledger_data, "ISCBDEBIT");
         let is_ob_debit: String = utils::get_from_map_safe(&ledger_data, "ISOBDEBIT");
         let is_tds_applicable: String = utils::get_from_map_safe(&ledger_data, "ISTDSAPPLICABLE");
@@ -328,7 +474,7 @@ impl From<HashMap<String, String>> for Ledger {
             to: utils::get_from_map_safe(&ledger_data, "TODATE"),
             gst: utils::get_from_map_safe(&ledger_data, "GSTIN"),
             gst_type: utils::get_from_map_safe(&ledger_data, "GSTREGISTRATIONTYPE"),
-            id: utils::get_from_map_safe(&ledger_data, "GUID"),
+            contact_id: utils::get_from_map_safe(&ledger_data, "GUID"),
             hsn: utils::get_from_map_safe(&ledger_data, "HSNCODE"),
             hsn_desc: utils::get_from_map_safe(&ledger_data, "HSNDESCRIPTION"),
             itn: utils::get_from_map_safe(&ledger_data, "INCOMETAXNUMBER"),
@@ -346,6 +492,10 @@ impl From<HashMap<String, String>> for Ledger {
                 positive: positive_bool.to_owned(),
             },
             name: utils::get_from_map_safe(&ledger_data, "NAME"),
+            vendor_name: utils::get_from_map_safe(&ledger_data, "NAME"),
+            first_name: name_parts[0].to_string(),
+            last_name: if name_parts.len() > 1 {name_parts[1].to_string()} else {"".to_string()},
+
             ..Ledger::default()
         };
     }

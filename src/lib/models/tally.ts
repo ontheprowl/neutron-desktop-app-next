@@ -18,7 +18,12 @@ export type TallyCompanyDetails = {
     "MOBILE": string,
     "PHONE": string,
     "PINCODE": string,
-    "STATE": string
+    "STATE": string,
+    "COMPANYNAME": string,
+    "GST": string,
+    "LASTVOUCHERDATE": string,
+    "NUMBEROFLEDGERS": string
+
 
 }
 

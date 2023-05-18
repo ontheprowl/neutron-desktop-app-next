@@ -102,7 +102,7 @@ export default function Login() {
                                             </form>
                                         </FormProvider>
 
-                                        <div className="hover:underline font-gilroy-medium  w-full text-center decoration-white self-start mt-4 pt-4"><span className="text-black">Don't have an account?</span> <Link href="/signup" className=" text-[#6950ba] hover:underline hover:decoration-[#6950ba]">Sign Up </Link></div>
+                                        <div className="hover:underline font-gilroy-medium  w-full text-center decoration-white self-start mt-4 pt-4"><span className="text-black">Don&apos;t have an account?</span> <Link href="/signup" className=" text-[#6950ba] hover:underline hover:decoration-[#6950ba]">Sign Up </Link></div>
                                         <Link href="/forgot_password" className=" text-[#6950ba] font-gilroy-medium hover:underline text-center hover:decoration-[#6950ba]"> Forgot your password? </Link>
 
                                     </div>

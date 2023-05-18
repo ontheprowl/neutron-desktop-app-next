@@ -1,6 +1,6 @@
 import type { ReactNode} from "react";
 import React, { useState } from "react";
-import { StateContext } from "~/utils/contexts/StateContext";
+import { StateContext } from "@/utils/contexts/StateContext";
 
 
 

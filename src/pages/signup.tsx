@@ -4,9 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useEffect } from "react";
-import { invoke } from "@tauri-apps/api/tauri"
 
-import { injectStyle } from "react-toastify/dist/inject-style";
 import { ValidationPatterns } from "@/utils/utils.client";
 import { useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
 import { fbAuth } from "@/lib/firebase/firebase-config";

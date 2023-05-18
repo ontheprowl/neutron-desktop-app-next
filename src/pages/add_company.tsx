@@ -1,13 +1,14 @@
 import NucleiCheckBox from "@/components/inputs/fields/NucleiCheckBox";
 import AppLayout from "@/components/layout/AppLayout";
 import DefaultSpinner from "@/components/layout/DefaultSpinner";
+import { emitToast } from "@/components/toasts/NeutronToastContainer";
 import { SessionContext } from "@/lib/context/SessionContext";
+import { fbFirestore } from "@/lib/firebase/firebase-config";
 import { TallyCompanyDetails } from "@/lib/models/tally";
-import { http, invoke } from "@tauri-apps/api"
-import { L } from "@tauri-apps/api/event-2a9960e7";
+import { invoke } from "@tauri-apps/api/tauri"
+import { doc, updateDoc } from "firebase/firestore";
 
 import { ReactElement, JSXElementConstructor, ReactFragment, ReactPortal, useEffect, useState, useContext } from "react";
-import { useQuery } from "react-query";
 
 
 
@@ -17,7 +18,7 @@ export default function AddCompany() {
 
     const { metadata, businessData } = useContext(SessionContext);
 
-    console.log(businessData)
+    console.log(metadata)
 
     const [companies, setCompanies] = useState<Array<TallyCompanyDetails>>([]);
     const [selected, setSelected] = useState<Array<boolean>>(new Array(companies.length))
@@ -27,10 +28,16 @@ export default function AddCompany() {
     useEffect(() => {
         invoke('get_tally_companies').then((data: { [x: string]: any }) => {
             if (data?.status != "-1") {
-                if (Array.isArray(data?.ENVELOPE?.COMPANIES)) {
-                    setCompanies(data?.ENVELOPE?.COMPANIES)
+                let companyDetails: [] = data?.company_details;
+                let gstDetails: [] = data?.gst_details;
+                if (Array.isArray(companyDetails) && Array.isArray(gstDetails)) {
+                    let result = [];
+                    for (const company of companyDetails) {
+                        result.push({ ...company, ...gstDetails?.find((entry) => entry?.COMPANYNAME == company?.COMPANY) });
+                    }
+                    setCompanies(result);
                 } else {
-                    setCompanies([data?.ENVELOPE?.COMPANIES])
+                    setCompanies([{ ...companyDetails, ...gstDetails }])
 
                 }
             }
@@ -38,6 +45,9 @@ export default function AddCompany() {
         ).catch(console.error)
 
     }, [refresh])
+
+
+    console.log(companies)
 
     return (
 
@@ -61,11 +71,20 @@ export default function AddCompany() {
                         setRefresh(!refresh);
                     }} className="text-white bg-primary-base transition-all hover:bg-primary-dark rounded-xl p-3 ">Refresh</button>
                     <button onClick={() => {
-                        selected.forEach((_, index) => {
+                        selected.forEach((value, index) => {
                             const companyGUID = companies[index]?.COMPANYGUID
                             const companyName = companies[index]?.COMPANY
 
-                            invoke('main_tally_sync', { companyGuid: companyGUID, companyName: companyName }).then(console.dir)
+                            invoke('main_tally_sync', { companyGuid: companyGUID, companyName: companyName, businessId: metadata?.businessID }).then((data: { [x: string]: any }) => {
+                                if (data?.status == 0) {
+                                    updateDoc(doc(fbFirestore, `businesses/${metadata?.businessID}`), { ...data?.data }).then(() => {
+                                        emitToast("Sync complete", `Tally data for ${companyName} has been synced successfully!`, "success");
+                                    })
+                                } else {
+                                    emitToast("Sync incomplete", `Tally data for ${companyName} has not been synced :(`, "error");
+
+                                }
+                            })
 
                         })
                     }} className="text-white bg-primary-base whitespace-nowrap transition-all hover:bg-primary-dark rounded-xl p-3 ">Sync Selected Companies</button>
@@ -97,7 +116,7 @@ export default function AddCompany() {
                                     ?.synced ? <div className="text-success-dark p-1 bg-success-light text-center rounded-lg">SYNCED</div>
                                     : <div className="text-error-dark  p-1 bg-error-light text-center rounded-lg">NOT SYNCED</div>
                                 }
-                                <div>{company?.CMPVCHALTERID ? company?.CMPVCHALTERID : '0'} Ledgers</div>
+                                <div>{company?.NUMBEROFLEDGERS ? company?.NUMBEROFLEDGERS : '0'} Ledgers</div>
                             </div>
                             <div className="flex flex-col items-end justify-between w-1/3  space-y-4">
                                 <span className="font-gilroy-medium bg-primary-dark text-white  rounded-lg p-3">From {company?.BOOKSFROM}</span>

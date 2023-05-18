@@ -61,7 +61,7 @@ export default function ForgotPassword() {
                                 >
                                     Forgot Password
                                 </h1>
-                                <h2 className="prose prose-sm font-gilroy-medium text-[#7D7D7D]">Enter your account's email ID</h2>
+                                <h2 className="prose prose-sm font-gilroy-medium text-[#7D7D7D]">Enter your account&apos;s email ID</h2>
 
                                 <div className=" flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 text-black  w-full justify-between">
                                     <div className="flex flex-col justify-items-start space-y-4 mt-5 w-full ">
@@ -88,7 +88,7 @@ export default function ForgotPassword() {
                                             </form>
                                         </FormProvider>
 
-                                        <div className="hover:underline font-gilroy-medium  w-full text-center decoration-white self-start mt-4 pt-4"><span className="text-black">Don't have an account?</span> <Link href="/signup" className=" text-[#6950ba] hover:underline hover:decoration-[#6950ba]">Sign Up </Link></div>
+                                        <div className="hover:underline font-gilroy-medium  w-full text-center decoration-white self-start mt-4 pt-4"><span className="text-black">Don&apos;t have an account?</span> <Link href="/signup" className=" text-[#6950ba] hover:underline hover:decoration-[#6950ba]">Sign Up </Link></div>
                                         <div className="hover:underline font-gilroy-medium  w-full text-center decoration-white self-start mt-2"><span className="text-black">Already have an account?</span> <Link href="/login" className=" text-[#6950ba] hover:underline hover:decoration-[#6950ba]">Log In </Link></div>
 
                                     </div>
